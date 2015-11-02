@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.ProgressBar;
@@ -25,9 +26,10 @@ import java.util.ArrayList;
 /**
  * Created by VladBytsyuk on 30.10.2015.
  */
-public class HashTagFinderFragment extends Fragment {
+public class HashTagFinderFragment extends Fragment implements View.OnClickListener {
     TweetsAdapter adapter;
     EditText hashTagEditText;
+    Button findButton;
     ListView listView;
     ProgressBar progressBar;
 
@@ -37,10 +39,17 @@ public class HashTagFinderFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_hash_tag_finder, container, false);
         listView = (ListView) rootView.findViewById(R.id.listView);
         progressBar = (ProgressBar) rootView.findViewById(R.id.progressBar);
+        progressBar.setVisibility(View.INVISIBLE);
+        findButton = (Button) rootView.findViewById(R.id.findButton);
+        findButton.setOnClickListener(this);
         hashTagEditText = (EditText) rootView.findViewById(R.id.hashTagEditText);
-        adapter = new TweetsAdapter(getActivity(), getTweets("hello"));
-        listView.setAdapter(adapter);
         return rootView;
+    }
+
+    @Override
+    public void onClick(View v) {
+        adapter = new TweetsAdapter(getActivity(), getTweets(hashTagEditText.getText().toString()));
+        listView.setAdapter(adapter);
     }
 
     private ArrayList<Tweet> getTweets(String hashTag) {
