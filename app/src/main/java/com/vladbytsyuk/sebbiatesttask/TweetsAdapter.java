@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -36,7 +37,7 @@ public class TweetsAdapter extends BaseAdapter {
     }
 
     @Override
-    public Object getItem(int position) {
+    public Tweet getItem(int position) {
         return tweetsList.get(position);
     }
 
@@ -47,10 +48,24 @@ public class TweetsAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        Tweet tweet = tweetsList.get(position);
-        convertView = tweetsAdapterInflater.inflate(R.layout.list_item, parent, false);
-        ((TextView) convertView.findViewById(R.id.tweetTimeTextView)).setText(tweet.getTweetTime());
-        ((TextView) convertView.findViewById(R.id.tweetTextView)).setText(tweet.getTweetText());
+        ViewHolder viewHolder;
+        if (convertView == null) {
+            convertView = tweetsAdapterInflater.inflate(R.layout.list_item, parent, false);
+            viewHolder = new ViewHolder();
+            viewHolder.tweetTimeTextView = (TextView) convertView.findViewById(R.id.tweetTimeTextView);
+            viewHolder.tweetTextView = (TextView) convertView.findViewById(R.id.tweetTextView);
+            convertView.setTag(viewHolder);
+        } else {
+            viewHolder = (ViewHolder) convertView.getTag();
+        }
+        viewHolder.tweetTimeTextView.setText(getItem(position).getTweetTime());
+        viewHolder.tweetTextView.setText(getItem(position).getTweetText());
         return convertView;
     }
+    
+    static class ViewHolder {
+        TextView tweetTimeTextView;
+        TextView tweetTextView;
+    }
+
 }

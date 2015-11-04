@@ -9,33 +9,65 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import com.bumptech.glide.Glide;
+
 
 /**
  * Created by VladBytsyuk on 30.10.2015.
  */
 public class ProfileFragment extends Fragment {
+    private String avatarUrl;
     private String name;
-    private Integer numberOfFriends;
+    private Integer friendsCount;
+
 
     private ImageView avatarImageView;
     private TextView nameTextView;
     private TextView friendsTextView;
+
+
+    public static ProfileFragment getInstance(String avatarUrl, String name, Integer friendsCount) {
+        ProfileFragment fragment = new ProfileFragment();
+        Bundle bundle = new Bundle();
+        bundle.putString("avatarUrl", avatarUrl);
+        bundle.putString("name", name);
+        bundle.putInt("friendsCount", friendsCount);
+        fragment.setArguments(bundle);
+        return fragment;
+    }
+
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_profile, container, false);
 
+        avatarUrl = null;
         name = null;
-        numberOfFriends = 0;
+        friendsCount = 0;
 
         avatarImageView = (ImageView) rootView.findViewById(R.id.avatarImageView);
         nameTextView = (TextView) rootView.findViewById(R.id.nameTextView);
         friendsTextView = (TextView) rootView.findViewById(R.id.friendsTextView);
 
-        /* == Fill Views here == */
+
+        Bundle bundle = getArguments();
+        if (bundle != null) {
+            avatarUrl = bundle.getString("avatarUrl");
+            Glide.with(this).load(avatarUrl).into(avatarImageView);
+
+            name = bundle.getString("name");
+            nameTextView.setText(name);
+
+            friendsCount = bundle.getInt("friendsCount");
+            friendsTextView.setText(friendsCount + " friends");
+        } else {
+            // No data
+        }
 
         return rootView;
 
     }
+
+
 }
