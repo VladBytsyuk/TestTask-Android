@@ -125,7 +125,6 @@ public class HashTagFinderFragment extends Fragment implements View.OnClickListe
         return dowloadedTweets;
     }
 
-
     public void setOnItemClickListener(OnItemPressed listener) {
         this.listener = listener;
     }
@@ -138,9 +137,15 @@ public class HashTagFinderFragment extends Fragment implements View.OnClickListe
         @Override
         protected Void doInBackground(String... params) {
             Integer TWEETS_AMOUNT = 10;
+            String jsonFile = downloadJSONFile(params[0], TWEETS_AMOUNT);
+            parseJSONFile(jsonFile, TWEETS_AMOUNT);
+            return null;
+        }
+
+        private String downloadJSONFile(String hashTag, Integer tweetsAmount) {
             try {
                 String BEARER_TOKEN = "Bearer AAAAAAAAAAAAAAAAAAAAADiJRQAAAAAAt%2Brjl%2Bqmz0rcy%2BBbuXBBsrUHGEg%3Dq0EK2aWqQMb15gCZNwZo9yqae0hpe2FDsS92WAu0g";
-                URL url = new URL("https://api.twitter.com/1.1/search/tweets.json?q=" + params[0] + "&result_type=mixed&count=" + TWEETS_AMOUNT.toString());
+                URL url = new URL("https://api.twitter.com/1.1/search/tweets.json?q=" + hashTag + "&result_type=popular&count=" + tweetsAmount.toString());
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestProperty("Authorization", BEARER_TOKEN);
                 connection.setRequestMethod("GET");
@@ -152,13 +157,21 @@ public class HashTagFinderFragment extends Fragment implements View.OnClickListe
                 while ((line = reader.readLine()) != null) {
                     builder.append(line + "\n");
                 }
-                String jsonFile = builder.toString();
+                return builder.toString();
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+
+        private void parseJSONFile(String jsonFile, Integer tweetsAmount) {
+            try {
                 JSONObject jsonFileJSON = new JSONObject(jsonFile);
                 JSONArray statusesJSON = jsonFileJSON.getJSONArray("statuses");
 
                 ContentValues cv = new ContentValues();
 
-                for (int i = 0; i < TWEETS_AMOUNT; ++i) {
+                for (int i = 0; i < tweetsAmount; ++i) {
                     JSONObject statusesObjectJSON = statusesJSON.getJSONObject(i);
                     String tweetTime = statusesObjectJSON.getString("created_at");
                     cv.put("time", tweetTime);
@@ -181,8 +194,8 @@ public class HashTagFinderFragment extends Fragment implements View.OnClickListe
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            return null;
         }
-
     }
+
+
 }
