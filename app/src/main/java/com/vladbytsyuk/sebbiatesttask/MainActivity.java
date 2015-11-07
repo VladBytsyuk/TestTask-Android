@@ -32,9 +32,9 @@ public class MainActivity extends AppCompatActivity implements HashTagFinderFrag
         hashTagFinder.setOnItemClickListener(this);
     }
 
-    public void itemPressed(String avatarUrl, String name, Integer friendsCount) {
+    public void itemPressed(Tweet tweet) {
         exitNow = false;
-        setCurrentFragment(R.id.main_container, ProfileFragment.getInstance(avatarUrl, name, friendsCount), true);
+        setCurrentFragment(R.id.main_container, ProfileFragment.getInstance(tweet), true);
     }
 
     private void setCurrentFragment(int container, Fragment fragment, Boolean addToBackStack) {

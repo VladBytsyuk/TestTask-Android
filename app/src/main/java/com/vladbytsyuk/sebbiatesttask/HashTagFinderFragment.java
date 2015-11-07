@@ -1,6 +1,10 @@
 package com.vladbytsyuk.sebbiatesttask;
 
 import android.app.Fragment;
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -31,10 +35,11 @@ public class HashTagFinderFragment extends Fragment implements View.OnClickListe
     Button findButton;
     ListView listView;
     ProgressBar progressBar;
-    ArrayList<Tweet> dowloadedTweets;
+    DBHelper dbHelper;
+    SQLiteDatabase db;
 
     public interface OnItemPressed {
-        void itemPressed(String avatarUrl, String name, Integer friendsCount);
+        void itemPressed(Tweet tweet);
     }
 
     private OnItemPressed listener;
@@ -49,10 +54,38 @@ public class HashTagFinderFragment extends Fragment implements View.OnClickListe
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 if (listener != null) {
-                    listener.itemPressed(dowloadedTweets.get(position).getAvatarUrl(), dowloadedTweets.get(position).getName(), dowloadedTweets.get(position).getFriendsCount());
+                    listener.itemPressed(adapter.getItem(position));
                 }
             }
         });
+        dbHelper = new DBHelper(getActivity());
+        db = dbHelper.getWritableDatabase(); // need to be closed
+
+
+
+        ArrayList<Tweet> dowloadedTweets = new ArrayList<>();
+        Cursor c = db.query("tweetsTable", null, null, null, null, null, null);
+        if(c.moveToFirst()) {
+            int nameCol = c.getColumnIndex("name");
+            int tweetCol = c.getColumnIndex("tweet");
+            int timeCol = c.getColumnIndex("time");
+            int imgCol = c.getColumnIndex("img");
+            int friendsCol = c.getColumnIndex("friends");
+
+            do {
+                String name = c.getString(nameCol);
+                String tweet = c.getString(tweetCol);
+                String time = c.getString(timeCol);
+                String img = c.getString(imgCol);
+                Integer friends = c.getInt(friendsCol);
+                dowloadedTweets.add(new Tweet(time, tweet, name, img, friends));
+            } while (c.moveToNext());
+        }
+        adapter = new TweetsAdapter(getActivity(), dowloadedTweets);
+        listView.setAdapter(adapter);
+
+
+
 
         progressBar = (ProgressBar) rootView.findViewById(R.id.progressBar);
         progressBar.setVisibility(View.INVISIBLE);
@@ -62,24 +95,45 @@ public class HashTagFinderFragment extends Fragment implements View.OnClickListe
 
         hashTagEditText = (EditText) rootView.findViewById(R.id.hashTagEditText);
 
+
+
         return rootView;
     }
 
     @Override
     public void onClick(View v) {
         progressBar.setVisibility(View.VISIBLE);
+        db.delete("tweetsTable", null, null);
         findHashTag(hashTagEditText.getText().toString());
     }
 
     private ArrayList<Tweet> getTweets(String hashTag) {
+        ArrayList<Tweet> dowloadedTweets = new ArrayList<>();
         DownloadTweets downloadTweets = new DownloadTweets();
         downloadTweets.execute(hashTag);
         try {
-            dowloadedTweets = downloadTweets.get();
-
+            downloadTweets.get();
         } catch (Exception e) {
             e.printStackTrace();
         }
+        Cursor c = db.query("tweetsTable", null, null, null, null, null, null);
+        if(c.moveToFirst()) {
+            int nameCol = c.getColumnIndex("name");
+            int tweetCol = c.getColumnIndex("tweet");
+            int timeCol = c.getColumnIndex("time");
+            int imgCol = c.getColumnIndex("img");
+            int friendsCol = c.getColumnIndex("friends");
+
+            do {
+                String name = c.getString(nameCol);
+                String tweet = c.getString(tweetCol);
+                String time = c.getString(timeCol);
+                String img = c.getString(imgCol);
+                Integer friends = c.getInt(friendsCol);
+                dowloadedTweets.add(new Tweet(time, tweet, name, img, friends));
+            } while (c.moveToNext());
+        }
+
         progressBar.setVisibility(View.INVISIBLE);
         return dowloadedTweets;
     }
@@ -99,10 +153,9 @@ public class HashTagFinderFragment extends Fragment implements View.OnClickListe
         this.listener = null;
     }
 
-    private class DownloadTweets extends AsyncTask<String, Void, ArrayList<Tweet>> {
+    private class DownloadTweets extends AsyncTask<String, Void, Void> {
         @Override
-        protected ArrayList<Tweet> doInBackground(String... params) {
-            ArrayList<Tweet> result = new ArrayList<>();
+        protected Void doInBackground(String... params) {
             Integer TWEETS_AMOUNT = 10;
             try {
                 String BEARER_TOKEN = "Bearer AAAAAAAAAAAAAAAAAAAAADiJRQAAAAAAt%2Brjl%2Bqmz0rcy%2BBbuXBBsrUHGEg%3Dq0EK2aWqQMb15gCZNwZo9yqae0hpe2FDsS92WAu0g";
@@ -121,20 +174,33 @@ public class HashTagFinderFragment extends Fragment implements View.OnClickListe
                 String jsonFile = builder.toString();
                 JSONObject jsonFileJSON = new JSONObject(jsonFile);
                 JSONArray statusesJSON = jsonFileJSON.getJSONArray("statuses");
+
+                ContentValues cv = new ContentValues();
+
                 for (int i = 0; i < TWEETS_AMOUNT; ++i) {
                     JSONObject statusesObjectJSON = statusesJSON.getJSONObject(i);
                     String tweetTime = statusesObjectJSON.getString("created_at");
+                    cv.put("time", tweetTime);
+
                     String tweetText = statusesObjectJSON.getString("text");
+                    cv.put("tweet", tweetText);
+
                     JSONObject userJSON = statusesObjectJSON.getJSONObject("user");
                     String name = userJSON.getString("name");
+                    cv.put("name", name);
+
                     String avatarUrl = userJSON.getString("profile_image_url_https");
+                    cv.put("img", avatarUrl);
+
                     Integer friendsCount = userJSON.getInt("friends_count");
-                    result.add(new Tweet(tweetTime, tweetText, name, avatarUrl, friendsCount));
+                    cv.put("friends", friendsCount);
+
+                    db.insert("tweetsTable", null, cv);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            return result;
+            return null;
         }
 
     }

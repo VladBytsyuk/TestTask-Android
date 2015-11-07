@@ -26,12 +26,12 @@ public class ProfileFragment extends Fragment {
     private TextView friendsTextView;
 
 
-    public static ProfileFragment getInstance(String avatarUrl, String name, Integer friendsCount) {
+    public static ProfileFragment getInstance(Tweet tweet) {
         ProfileFragment fragment = new ProfileFragment();
         Bundle bundle = new Bundle();
-        bundle.putString("avatarUrl", avatarUrl);
-        bundle.putString("name", name);
-        bundle.putInt("friendsCount", friendsCount);
+        bundle.putString("avatarUrl", tweet.getAvatarUrl());
+        bundle.putString("name", tweet.getName());
+        bundle.putInt("friendsCount", tweet.getFriendsCount());
         fragment.setArguments(bundle);
         return fragment;
     }
