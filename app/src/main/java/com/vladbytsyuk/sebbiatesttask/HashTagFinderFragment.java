@@ -107,8 +107,20 @@ public class HashTagFinderFragment extends Fragment implements View.OnClickListe
         findHashTag(hashTagEditText.getText().toString());
     }
 
+    public void findHashTag(String hashTag) {
+        if (hashTag != null) {
+            adapter = new TweetsAdapter(getActivity(), getTweets(hashTag));
+            progressBar.setVisibility(View.INVISIBLE);
+            listView.setAdapter(adapter);
+        }
+    }
+
     private ArrayList<Tweet> getTweets(String hashTag) {
-        ArrayList<Tweet> dowloadedTweets = new ArrayList<>();
+        downloadTweetsByHashTag(hashTag);
+        return getTweetsList();
+    }
+
+    private void downloadTweetsByHashTag(String hashTag) {
         DownloadTweets downloadTweets = new DownloadTweets();
         downloadTweets.execute(hashTag);
         try {
@@ -116,6 +128,9 @@ public class HashTagFinderFragment extends Fragment implements View.OnClickListe
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+    private ArrayList<Tweet> getTweetsList() {
+        ArrayList<Tweet> dowloadedTweets = new ArrayList<>();
         Cursor c = db.query("tweetsTable", null, null, null, null, null, null);
         if(c.moveToFirst()) {
             int nameCol = c.getColumnIndex("name");
@@ -123,7 +138,6 @@ public class HashTagFinderFragment extends Fragment implements View.OnClickListe
             int timeCol = c.getColumnIndex("time");
             int imgCol = c.getColumnIndex("img");
             int friendsCol = c.getColumnIndex("friends");
-
             do {
                 String name = c.getString(nameCol);
                 String tweet = c.getString(tweetCol);
@@ -133,17 +147,9 @@ public class HashTagFinderFragment extends Fragment implements View.OnClickListe
                 dowloadedTweets.add(new Tweet(time, tweet, name, img, friends));
             } while (c.moveToNext());
         }
-
-        progressBar.setVisibility(View.INVISIBLE);
         return dowloadedTweets;
     }
 
-    public void findHashTag(String hashTag) {
-        if (hashTag != null) {
-            adapter = new TweetsAdapter(getActivity(), getTweets(hashTag));
-            listView.setAdapter(adapter);
-        }
-    }
 
     public void setOnItemClickListener(OnItemPressed listener) {
         this.listener = listener;
