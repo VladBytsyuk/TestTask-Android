@@ -61,31 +61,8 @@ public class HashTagFinderFragment extends Fragment implements View.OnClickListe
         dbHelper = new DBHelper(getActivity());
         db = dbHelper.getWritableDatabase(); // need to be closed
 
-
-
-        ArrayList<Tweet> dowloadedTweets = new ArrayList<>();
-        Cursor c = db.query("tweetsTable", null, null, null, null, null, null);
-        if(c.moveToFirst()) {
-            int nameCol = c.getColumnIndex("name");
-            int tweetCol = c.getColumnIndex("tweet");
-            int timeCol = c.getColumnIndex("time");
-            int imgCol = c.getColumnIndex("img");
-            int friendsCol = c.getColumnIndex("friends");
-
-            do {
-                String name = c.getString(nameCol);
-                String tweet = c.getString(tweetCol);
-                String time = c.getString(timeCol);
-                String img = c.getString(imgCol);
-                Integer friends = c.getInt(friendsCol);
-                dowloadedTweets.add(new Tweet(time, tweet, name, img, friends));
-            } while (c.moveToNext());
-        }
-        adapter = new TweetsAdapter(getActivity(), dowloadedTweets);
+        adapter = new TweetsAdapter(getActivity(), getTweetsList());
         listView.setAdapter(adapter);
-
-
-
 
         progressBar = (ProgressBar) rootView.findViewById(R.id.progressBar);
         progressBar.setVisibility(View.INVISIBLE);
@@ -94,8 +71,6 @@ public class HashTagFinderFragment extends Fragment implements View.OnClickListe
         findButton.setOnClickListener(this);
 
         hashTagEditText = (EditText) rootView.findViewById(R.id.hashTagEditText);
-
-
 
         return rootView;
     }
