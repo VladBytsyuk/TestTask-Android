@@ -29,25 +29,45 @@ import java.util.ArrayList;
 /**
  * Created by VladBytsyuk on 30.10.2015.
  */
-public class HashTagFinderFragment extends Fragment implements View.OnClickListener {
+public class HashTagFinderFragment extends Fragment  {
     TweetsAdapter adapter;
+
     EditText hashTagEditText;
     Button findButton;
     ListView listView;
     ProgressBar progressBar;
+
     DBHelper dbHelper;
     SQLiteDatabase db;
 
     public interface OnItemPressed {
         void itemPressed(Tweet tweet);
     }
-
     private OnItemPressed listener;
+
+    public void setOnItemClickListener(OnItemPressed listener) {
+        this.listener = listener;
+    }
+
+    public void removeOnItemClickListener() {
+        this.listener = null;
+    }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_hash_tag_finder, container, false);
+
+        hashTagEditText = (EditText) rootView.findViewById(R.id.editTextHashTag);
+
+        findButton = (Button) rootView.findViewById(R.id.buttonFind);
+        findButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                db.delete("tweetsTable", null, null);
+                findHashTag(hashTagEditText.getText().toString());
+            }
+        });
 
         listView = (ListView) rootView.findViewById(R.id.listView);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -58,34 +78,28 @@ public class HashTagFinderFragment extends Fragment implements View.OnClickListe
                 }
             }
         });
+
+        progressBar = (ProgressBar) rootView.findViewById(R.id.progressBarHashTagFinder);
+
         dbHelper = new DBHelper(getActivity());
-        db = dbHelper.getWritableDatabase(); // need to be closed
+        db = dbHelper.getWritableDatabase();
 
         adapter = new TweetsAdapter(getActivity(), getTweetsList());
         listView.setAdapter(adapter);
-
-        progressBar = (ProgressBar) rootView.findViewById(R.id.progressBar);
-        progressBar.setVisibility(View.INVISIBLE);
-
-        findButton = (Button) rootView.findViewById(R.id.findButton);
-        findButton.setOnClickListener(this);
-
-        hashTagEditText = (EditText) rootView.findViewById(R.id.hashTagEditText);
 
         return rootView;
     }
 
     @Override
-    public void onClick(View v) {
-        progressBar.setVisibility(View.VISIBLE);
-        db.delete("tweetsTable", null, null);
-        findHashTag(hashTagEditText.getText().toString());
+    public void onDestroyView() {
+        db.close();
+        dbHelper.close();
+        super.onDestroyView();
     }
 
     public void findHashTag(String hashTag) {
         if (hashTag != null) {
             adapter = new TweetsAdapter(getActivity(), getTweets(hashTag));
-            progressBar.setVisibility(View.INVISIBLE);
             listView.setAdapter(adapter);
         }
     }
@@ -104,36 +118,41 @@ public class HashTagFinderFragment extends Fragment implements View.OnClickListe
             e.printStackTrace();
         }
     }
+
     private ArrayList<Tweet> getTweetsList() {
-        ArrayList<Tweet> dowloadedTweets = new ArrayList<>();
+        ArrayList<Tweet> tweetsList = new ArrayList<>();
         Cursor c = db.query("tweetsTable", null, null, null, null, null, null);
         if(c.moveToFirst()) {
-            int nameCol = c.getColumnIndex("name");
-            int tweetCol = c.getColumnIndex("tweet");
-            int timeCol = c.getColumnIndex("time");
-            int imgCol = c.getColumnIndex("img");
-            int friendsCol = c.getColumnIndex("friends");
+            int userNameColumnIndex = c.getColumnIndex("user_name");
+            int tweetTextColumnIndex = c.getColumnIndex("tweet_text");
+            int tweetTimeColumnIndex = c.getColumnIndex("tweet_time");
+            int avatarUrlColumnIndex = c.getColumnIndex("avatar_url");
+            int friendsCountColumnIndex = c.getColumnIndex("friends_count");
             do {
-                String name = c.getString(nameCol);
-                String tweet = c.getString(tweetCol);
-                String time = c.getString(timeCol);
-                String img = c.getString(imgCol);
-                Integer friends = c.getInt(friendsCol);
-                dowloadedTweets.add(new Tweet(time, tweet, name, img, friends));
+                String userName = c.getString(userNameColumnIndex);
+                String tweetText = c.getString(tweetTextColumnIndex);
+                String tweetTime = c.getString(tweetTimeColumnIndex);
+                String avatarUrl = c.getString(avatarUrlColumnIndex);
+                Integer friendsCount = c.getInt(friendsCountColumnIndex);
+                tweetsList.add(new Tweet(userName, tweetText, tweetTime, avatarUrl, friendsCount));
             } while (c.moveToNext());
         }
-        return dowloadedTweets;
-    }
-
-    public void setOnItemClickListener(OnItemPressed listener) {
-        this.listener = listener;
-    }
-
-    public void removeOnItemClickListener() {
-        this.listener = null;
+        return tweetsList;
     }
 
     private class DownloadTweets extends AsyncTask<String, Void, Void> {
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progressBar.setVisibility(View.VISIBLE);
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            progressBar.setVisibility(View.INVISIBLE);
+        }
+
         @Override
         protected Void doInBackground(String... params) {
             Integer TWEETS_AMOUNT = 10;
@@ -145,7 +164,7 @@ public class HashTagFinderFragment extends Fragment implements View.OnClickListe
         private String downloadJSONFile(String hashTag, Integer tweetsAmount) {
             try {
                 String BEARER_TOKEN = "Bearer AAAAAAAAAAAAAAAAAAAAADiJRQAAAAAAt%2Brjl%2Bqmz0rcy%2BBbuXBBsrUHGEg%3Dq0EK2aWqQMb15gCZNwZo9yqae0hpe2FDsS92WAu0g";
-                URL url = new URL("https://api.twitter.com/1.1/search/tweets.json?q=" + hashTag + "&result_type=popular&count=" + tweetsAmount.toString());
+                URL url = new URL("https://api.twitter.com/1.1/search/tweets.json?q=%23" + hashTag + "&result_type=popular&count=" + tweetsAmount.toString());
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestProperty("Authorization", BEARER_TOKEN);
                 connection.setRequestMethod("GET");
@@ -157,6 +176,8 @@ public class HashTagFinderFragment extends Fragment implements View.OnClickListe
                 while ((line = reader.readLine()) != null) {
                     builder.append(line + "\n");
                 }
+                reader.close();
+                connection.disconnect();
                 return builder.toString();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -173,21 +194,22 @@ public class HashTagFinderFragment extends Fragment implements View.OnClickListe
 
                 for (int i = 0; i < tweetsAmount; ++i) {
                     JSONObject statusesObjectJSON = statusesJSON.getJSONObject(i);
-                    String tweetTime = statusesObjectJSON.getString("created_at");
-                    cv.put("time", tweetTime);
-
-                    String tweetText = statusesObjectJSON.getString("text");
-                    cv.put("tweet", tweetText);
 
                     JSONObject userJSON = statusesObjectJSON.getJSONObject("user");
                     String name = userJSON.getString("name");
-                    cv.put("name", name);
+                    cv.put("user_name", name);
+
+                    String tweetText = statusesObjectJSON.getString("text");
+                    cv.put("tweet_text", tweetText);
+
+                    String tweetTime = statusesObjectJSON.getString("created_at");
+                    cv.put("tweet_time", tweetTime);
 
                     String avatarUrl = userJSON.getString("profile_image_url_https");
-                    cv.put("img", avatarUrl);
+                    cv.put("avatar_url", avatarUrl);
 
                     Integer friendsCount = userJSON.getInt("friends_count");
-                    cv.put("friends", friendsCount);
+                    cv.put("friends_count", friendsCount);
 
                     db.insert("tweetsTable", null, cv);
                 }
@@ -195,6 +217,7 @@ public class HashTagFinderFragment extends Fragment implements View.OnClickListe
                 e.printStackTrace();
             }
         }
+
     }
 
 

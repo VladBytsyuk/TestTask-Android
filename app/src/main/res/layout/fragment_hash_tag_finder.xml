@@ -5,7 +5,7 @@
     android:orientation="vertical">
 
     <TextView
-        android:id="@+id/hashTextView"
+        android:id="@+id/textViewHash"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/hash"
@@ -15,16 +15,16 @@
         android:layout_alignParentStart="true" />
 
     <EditText
-        android:id="@+id/hashTagEditText"
+        android:id="@+id/editTextHashTag"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:layout_toLeftOf="@+id/findButton"
-        android:layout_toRightOf="@+id/hashTextView"
+        android:layout_toLeftOf="@+id/buttonFind"
+        android:layout_toRightOf="@+id/textViewHash"
         android:hint="Input hashtag here" />
 
     <Button
-        android:id="@+id/findButton"
+        android:id="@+id/buttonFind"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
@@ -38,14 +38,15 @@
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_below="@+id/findButton" />
+        android:layout_below="@+id/buttonFind" />
 
     <ProgressBar
         style="?android:attr/progressBarStyleLarge"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/progressBar"
+        android:id="@+id/progressBarHashTagFinder"
         android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"
+        android:visibility="invisible"/>
 
 </RelativeLayout>

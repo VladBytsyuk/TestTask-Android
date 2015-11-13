@@ -2,5 +2,5 @@
     <string name="app_name">SebbiaTestTask</string>
     <string name="hash">#</string>
     <string name="findButton">Find</string>
-    <string name="downloadingError">Downloading error</string>
+    <string name="exitToast">Press "Back" again to exit</string>
 </resources>

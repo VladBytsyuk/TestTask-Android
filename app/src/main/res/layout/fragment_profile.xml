@@ -7,7 +7,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="@string/downloadingError"
         android:id="@+id/nameTextView"
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true" />
@@ -26,4 +25,15 @@
         android:id="@+id/avatarImageView"
         android:layout_above="@+id/nameTextView"
         android:layout_centerHorizontal="true" />
+
+    <ProgressBar
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/progressBarProfile"
+        android:layout_alignTop="@+id/avatarImageView"
+        android:layout_alignLeft="@+id/avatarImageView"
+        android:layout_alignStart="@+id/avatarImageView"
+        android:layout_alignBottom="@+id/avatarImageView"
+        android:layout_alignRight="@+id/avatarImageView"
+        android:layout_alignEnd="@+id/avatarImageView" />
 </RelativeLayout>

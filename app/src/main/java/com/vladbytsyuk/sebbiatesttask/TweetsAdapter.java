@@ -14,21 +14,12 @@ import java.util.ArrayList;
  * Created by VladBytsyuk on 30.10.2015.
  */
 public class TweetsAdapter extends BaseAdapter {
-    private LayoutInflater tweetsAdapterInflater;
+    private Context context;
     private ArrayList<Tweet> tweetsList;
 
     public TweetsAdapter(Context context, ArrayList<Tweet> tweetsList) {
-        this.tweetsAdapterInflater = LayoutInflater.from(context);
+        this.context = context;
         this.tweetsList = tweetsList;
-    }
-
-    public TweetsAdapter(Context context, Tweet... tweets) {
-        this.tweetsAdapterInflater = LayoutInflater.from(context);
-        ArrayList<Tweet> buf = new ArrayList<>();
-        for (Tweet x : tweets) {
-            buf.add(x);
-        }
-        this.tweetsList = buf;
     }
 
     @Override
@@ -50,10 +41,8 @@ public class TweetsAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolder viewHolder;
         if (convertView == null) {
-            convertView = tweetsAdapterInflater.inflate(R.layout.list_item, parent, false);
-            viewHolder = new ViewHolder();
-            viewHolder.tweetTimeTextView = (TextView) convertView.findViewById(R.id.tweetTimeTextView);
-            viewHolder.tweetTextView = (TextView) convertView.findViewById(R.id.tweetTextView);
+            convertView = LayoutInflater.from(context).inflate(R.layout.list_item, parent, false);
+            viewHolder = viewHolderInit(convertView);
             convertView.setTag(viewHolder);
         } else {
             viewHolder = (ViewHolder) convertView.getTag();
@@ -61,6 +50,13 @@ public class TweetsAdapter extends BaseAdapter {
         viewHolder.tweetTimeTextView.setText(getItem(position).getTweetTime());
         viewHolder.tweetTextView.setText(getItem(position).getTweetText());
         return convertView;
+    }
+
+    private ViewHolder viewHolderInit(View view) {
+        ViewHolder viewHolder = new ViewHolder();
+        viewHolder.tweetTimeTextView = (TextView) view.findViewById(R.id.tweetTimeTextView);
+        viewHolder.tweetTextView = (TextView) view.findViewById(R.id.tweetTextView);
+        return viewHolder;
     }
     
     static class ViewHolder {

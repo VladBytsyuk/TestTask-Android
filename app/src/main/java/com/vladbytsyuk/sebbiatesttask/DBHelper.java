@@ -9,18 +9,18 @@ import android.database.sqlite.SQLiteOpenHelper;
  */
 public class DBHelper extends SQLiteOpenHelper {
     public DBHelper(Context context) {
-        super(context, "tweetDB", null, 1);
+        super(context, "tweetsTable", null, 1);
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("create table tweetsTable " +
                        "(id integer primary key autoincrement, " +
-                        "name text, " +
-                        "tweet text, " +
-                        "time text, " +
-                        "img text, " +
-                        "friends integer);");
+                        "user_name text, " +
+                        "tweet_text text, " +
+                        "tweet_time text, " +
+                        "avatar_url text, " +
+                        "friends_count integer);");
     }
 
     @Override
