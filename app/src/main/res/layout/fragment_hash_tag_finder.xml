@@ -8,11 +8,11 @@
         android:id="@+id/textViewHash"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/hash"
-        android:textSize="28sp"
-        android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:text="@string/hash"
+        android:textSize="28sp" />
 
     <EditText
         android:id="@+id/editTextHashTag"
@@ -32,21 +32,26 @@
         android:layout_alignParentTop="true"
         android:text="@string/findButton" />
 
-    <ListView
-        android:id="@+id/listView"
+    <FrameLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_below="@+id/buttonFind" />
+        android:layout_below="@+id/buttonFind">
+
+        <ListView
+            android:id="@+id/listView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"/>
+    </FrameLayout>
 
     <ProgressBar
+        android:id="@+id/progressBarHashTagFinder"
         style="?android:attr/progressBarStyleLarge"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/progressBarHashTagFinder"
-        android:layout_centerVertical="true"
         android:layout_centerHorizontal="true"
-        android:visibility="invisible"/>
+        android:layout_centerVertical="true"
+        android:visibility="invisible" />
 
 </RelativeLayout>

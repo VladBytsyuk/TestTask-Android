@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -65,7 +66,7 @@ public class HashTagFinderFragment extends Fragment  {
             @Override
             public void onClick(View v) {
                 db.delete("tweetsTable", null, null);
-                findHashTag(hashTagEditText.getText().toString());
+                downloadTweetsByHashTag(hashTagEditText.getText().toString());
             }
         });
 
@@ -97,25 +98,11 @@ public class HashTagFinderFragment extends Fragment  {
         super.onDestroyView();
     }
 
-    public void findHashTag(String hashTag) {
-        if (hashTag != null) {
-            adapter = new TweetsAdapter(getActivity(), getTweets(hashTag));
-            listView.setAdapter(adapter);
-        }
-    }
-
-    private ArrayList<Tweet> getTweets(String hashTag) {
-        downloadTweetsByHashTag(hashTag);
-        return getTweetsList();
-    }
 
     private void downloadTweetsByHashTag(String hashTag) {
-        DownloadTweets downloadTweets = new DownloadTweets();
-        downloadTweets.execute(hashTag);
-        try {
-            downloadTweets.get();
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (hashTag != null) {
+            DownloadTweets downloadTweets = new DownloadTweets();
+            downloadTweets.execute(hashTag);
         }
     }
 
@@ -144,18 +131,23 @@ public class HashTagFinderFragment extends Fragment  {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
+            listView.setVisibility(View.INVISIBLE);
             progressBar.setVisibility(View.VISIBLE);
         }
 
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
+            adapter = new TweetsAdapter(getActivity(), getTweetsList());
+            listView.setAdapter(adapter);
             progressBar.setVisibility(View.INVISIBLE);
+            listView.setVisibility(View.VISIBLE);
         }
+
 
         @Override
         protected Void doInBackground(String... params) {
-            Integer TWEETS_AMOUNT = 10;
+            Integer TWEETS_AMOUNT = 100;
             String jsonFile = downloadJSONFile(params[0], TWEETS_AMOUNT);
             parseJSONFile(jsonFile, TWEETS_AMOUNT);
             return null;
@@ -164,7 +156,7 @@ public class HashTagFinderFragment extends Fragment  {
         private String downloadJSONFile(String hashTag, Integer tweetsAmount) {
             try {
                 String BEARER_TOKEN = "Bearer AAAAAAAAAAAAAAAAAAAAADiJRQAAAAAAt%2Brjl%2Bqmz0rcy%2BBbuXBBsrUHGEg%3Dq0EK2aWqQMb15gCZNwZo9yqae0hpe2FDsS92WAu0g";
-                URL url = new URL("https://api.twitter.com/1.1/search/tweets.json?q=%23" + hashTag + "&result_type=popular&count=" + tweetsAmount.toString());
+                URL url = new URL("https://api.twitter.com/1.1/search/tweets.json?&q=%23" + hashTag + "&count=" + tweetsAmount.toString());
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestProperty("Authorization", BEARER_TOKEN);
                 connection.setRequestMethod("GET");
